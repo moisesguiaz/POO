@@ -1,4 +1,4 @@
-# Gestão de Obras de Museu - Projeto (Entrega)
+# Gestão de Obras de Museu - Projeto 
 Projeto Java simples (linha de comando) para gerenciar obras, exposições e restaurações em um museu.
 Baseado no documento do usuário enviado.
 
@@ -8,17 +8,10 @@ Baseado no documento do usuário enviado.
 - `museum-project.zip` - pacote deste projeto
 
 ## Requisitos
-- JDK 11+ (compilar com `javac`)
-- Rodar com `java` ou importar no IDE (Eclipse/IntelliJ)
+
 
 ## Como compilar e executar
-```bash
-cd src
-javac museum/*.java
-java museum.Main
-```
 
-Os dados são salvos automaticamente em `data/` (serialização Java).
 
 ## Funcionalidades implementadas (mínimo)
 - Cadastro e login de Visitante e Administrador.
