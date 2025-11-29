@@ -2,7 +2,6 @@ package model;
 import java.util.Date;
 import java.util.List;
 
-
 public class Administrador {
     private int id;
     private String nome;
