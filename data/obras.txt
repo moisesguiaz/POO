@@ -1,3 +1,0 @@
-1;Mona Lisa;Leonardo da Vinci;1503;false;false
-2;Starry Night;Vincent van Gogh;1889;false;false
-3;Test;Test;1999;false;false
