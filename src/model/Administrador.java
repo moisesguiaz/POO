@@ -1,105 +1,209 @@
 package model;
 
-import java.util.Date;
+import java.time.LocalDate;
 import java.util.List;
 
 public class Administrador extends Usuario {
+    private String cargo;
 
-    public Administrador(int id, String nome, String login, String senha) {
-        super(id, nome, login, senha);
+    public Administrador(int id, String nome, String login, String senha, String cpf, String cargo) {
+        super(id, nome, login, senha, cpf);
+        this.cargo = cargo;
     }
 
-   
-    public void criarObra(List<Obra> obras, String titulo, String artista, int ano, String estadoConservacao) {
-        int novoId = obras.stream().mapToInt(Obra::getId).max().orElse(0) + 1;
-        Obra novaObra = new Obra(novoId, titulo, artista, ano);
-       
-        obras.add(novaObra);
-        System.out.println("Obra criada com sucesso: " + novaObra);
+    // --- MÉTODOS DE CRIAÇÃO ---
+
+    public void criarObra(List<Obra> catalogoObras, String titulo, String artista, 
+                          int ano, String estilo, double valor, String conservacao) {
+        int novoId = catalogoObras.size() + 1;
+        Obra novaObra = new Obra(novoId, titulo, artista, ano, estilo, valor, "Acervo", conservacao);
+        catalogoObras.add(novaObra);
+        System.out.println("Sucesso: Obra '" + titulo + "' cadastrada no acervo.");
+    }
+
+    public void criarExposicao(List<Exposicao> listaExposicoes, String titulo, LocalDate inicio, 
+                               LocalDate fim, int capacidade, String local) {
+        int novoId = listaExposicoes.size() + 1;
+        Exposicao novaExp = new Exposicao(novoId, titulo, inicio, fim, capacidade, local);
+        listaExposicoes.add(novaExp);
+        System.out.println("Sucesso: Exposição '" + titulo + "' criada.");
+    }
+
+    public void incluirObraEmExposicao(Exposicao exposicao, Obra obra) {
+        if(exposicao.adicionarObra(obra)) {
+            System.out.println("Obra '" + obra.getTitulo() + "' adicionada à exposição '" + exposicao.getTitulo() + "'.");
+        }
+    }
+
+    // --- MÉTODOS DE RESTAURAÇÃO ---
+
+    public void iniciarRestauracao(List<Restauracao> restauracoes, List<Exposicao> exposicoes, 
+                                   Obra obra, LocalDate dataInicio) {
+        if (obra.isEmRestauracao()) {
+            System.out.println("Erro: A obra já está em processo de restauração.");
+            return;
+        }
+
+        // Regra: Remover da exposição se entrar em restauração
+        if (obra.isEmExposicao()) {
+            System.out.println("Aviso: A obra estava em exposição. Removendo-a automaticamente...");
+            for (Exposicao exp : exposicoes) {
+                if (exp.getObras().contains(obra)) {
+                    exp.removerObra(obra);
+                }
+            }
+        }
+
+        int novoId = restauracoes.size() + 1;
+        Restauracao novaRestauracao = new Restauracao(novoId, obra, dataInicio);
+        restauracoes.add(novaRestauracao);
+        
+        System.out.println("Restauração iniciada para a obra: " + obra.getTitulo());
     }
 
 
-    public void criarExposicao(List<Exposicao> exposicoes, String titulo, String dataInicio, String dataFim, int capacidade) {
-        try {
+    // --- MÉTODOS DE EDIÇÃO E EXCLUSÃO ---
+
+    public void excluirObra(List<Obra> catalogoObras, int idObra) {
+        Obra obraParaRemover = null;
+        for (Obra o : catalogoObras) {
+            if (o.getId() == idObra) {
+                obraParaRemover = o;
+                break;
+            }
+        }
     
-            Date dataInicioExposicao = new Date(dataInicio); 
-            Date dataFimExposicao = new Date(dataFim);
-
-            int novoId = exposicoes.stream().mapToInt(Exposicao::getId).max().orElse(0) + 1;
-            Exposicao novaExposicao = new Exposicao(novoId, titulo, dataInicioExposicao, dataFimExposicao, capacidade);
-            exposicoes.add(novaExposicao);
-            System.out.println("Exposição criada com sucesso: " + novaExposicao);
-        } catch (Exception e) {
-            System.out.println("Erro ao criar exposição: " + e.getMessage());
+        if (obraParaRemover == null) {
+            System.out.println("Erro: Obra não encontrada.");
+            return;
         }
+    
+        if (obraParaRemover.isEmExposicao()) {
+            System.out.println("Erro: Obra em exposição ativa.");
+            return;
+        }
+        
+        if (obraParaRemover.isEmRestauracao()) {
+            System.out.println("Erro: Obra em restauração.");
+            return;
+        }
+    
+        catalogoObras.remove(obraParaRemover);
+        System.out.println("Sucesso: Obra removida.");
     }
 
-    public void adicionarObraAExposicao(List<Obra> obras, List<Exposicao> exposicoes, int idObra, int idExposicao) {
-        Obra obra = obras.stream().filter(o -> o.getId() == idObra).findFirst().orElse(null);
-        Exposicao exposicao = exposicoes.stream().filter(e -> e.getId() == idExposicao).findFirst().orElse(null);
-
-        if (obra != null && exposicao != null) {
-            obra.setEmExposicao(true);
-            System.out.println("Obra " + obra.getId() + " adicionada à exposição " + exposicao.getId());
-        } else {
-            System.out.println("Obra ou Exposição não encontrada.");
+    public void editarObra(List<Obra> catalogoObras, int idObra, String novoTitulo, 
+                           String novoArtista, int novoAno, String novaConservacao) {
+        Obra obra = null;
+        for (Obra o : catalogoObras) {
+            if (o.getId() == idObra) {
+                obra = o;
+                break;
+            }
         }
-    }
 
-     public void iniciarRestauracao(List<Obra> obras, int idObra, String dataInicio) {
-        Obra obra = obras.stream().filter(o -> o.getId() == idObra).findFirst().orElse(null);
         if (obra != null) {
-            obra.setEmRestauracao(true);
-            System.out.println("Restauração iniciada para a obra " + obra.getId() + " em " + dataInicio);
+            obra.setTitulo(novoTitulo);
+            obra.setArtista(novoArtista);
+            obra.setAno(novoAno);
+            obra.setEstadoConservacao(novaConservacao);
+            System.out.println("Sucesso: Dados da obra atualizados.");
         } else {
-             System.out.println("Obra não encontrada.");
+            System.out.println("Erro: Obra não encontrada.");
         }
     }
 
-     public void removerObra(List<Obra> obras, int idObra) {
-        Obra obra = obras.stream().filter(o -> o.getId() == idObra).findFirst().orElse(null);
-        if (obra != null) {
-            if (!obra.getEmExposicao()) {
-                obras.remove(obra);
-                System.out.println("Obra removida com sucesso.");
-            } else {
-                System.out.println("Não é possível remover obra em exposição.");
-            }
-        } else {
-            System.out.println("Obra não encontrada.");
-        }
-    }
 
-    public void deletarVisitante(List<Visitante> visitantes, int idVisitante) {
-        Visitante visitante = visitantes.stream().filter(v -> v.getId() == idVisitante).findFirst().orElse(null);
-        if (visitante != null) {
-            visitantes.remove(visitante);
-            System.out.println("Visitante removido com sucesso.");
-        } else {
-            System.out.println("Visitante não encontrado.");
-        }
-    }
-
-    public void listarObras(List<Obra> obras) {
-        System.out.println("\n--- Lista de Obras ---");
-        if (obras.isEmpty()) {
-            System.out.println("Nenhuma obra cadastrada.");
-        } else {
-            for (Obra obra : obras) {
-                System.out.println(obra);
+    // 1. Finalizar Restauração (Corrige o erro do App.java)
+    public void finalizarRestauracao(List<Restauracao> restauracoes, int idObra, LocalDate dataFim) {
+        Restauracao alvo = null;
+        for (Restauracao r : restauracoes) {
+            if (r.getObra().getId() == idObra && r.getStatus().equals("Em andamento")) {
+                alvo = r;
+                break;
             }
         }
-    }
-
-    public void listarExposicoes(List<Exposicao> exposicoes) {
-        System.out.println("\n--- Lista de Exposições ---");
-        if (exposicoes.isEmpty()) {
-            System.out.println("Nenhuma exposição cadastrada.");
+        if (alvo != null) {
+            alvo.concluirRestauracao(dataFim);
         } else {
-            for (Exposicao exposicao : exposicoes) {
-                System.out.println(exposicao);
-            }
+            System.out.println("Erro: Nenhuma restauração ativa para esta obra.");
         }
     }
+
+    // 2. Remover Obra da Exposição (Sem ser por restauração)
+    public void removerObraDaExposicao(Exposicao exposicao, Obra obra) {
+        if (exposicao.getObras().contains(obra)) {
+            exposicao.removerObra(obra);
+            System.out.println("Sucesso: Obra removida da exposição.");
+        } else {
+            System.out.println("Erro: Obra não está nesta exposição.");
+        }
+    }
+
+    // 3. Excluir Exposição
+    public void excluirExposicao(List<Exposicao> exposicoes, int idExpo) {
+        Exposicao alvo = null;
+        for (Exposicao e : exposicoes) {
+            if (e.getId() == idExpo) { alvo = e; break; }
+        }
+        if (alvo != null) {
+            // Libera as obras antes de excluir
+            List<Obra> obrasNaExpo = List.copyOf(alvo.getObras());
+            for (Obra o : obrasNaExpo) alvo.removerObra(o);
+            
+            exposicoes.remove(alvo);
+            System.out.println("Sucesso: Exposição excluída.");
+        } else {
+            System.out.println("Erro: Exposição não encontrada.");
+        }
+    }
+
+    // 4. Editar Exposição
+    public void editarExposicao(List<Exposicao> exposicoes, int idExpo, String novoTitulo, int novaCap) {
+        Exposicao alvo = null;
+        for (Exposicao e : exposicoes) {
+            if (e.getId() == idExpo) { alvo = e; break; }
+        }
+        if (alvo != null) {
+            alvo.setTitulo(novoTitulo);
+            if (novaCap > 0) alvo.setCapacidade(novaCap);
+            System.out.println("Sucesso: Exposição editada.");
+        } else {
+            System.out.println("Erro: Exposição não encontrada.");
+        }
+    }
+
+    // --- GESTÃO DE VISITANTES ---
+
+    public void listarVisitantes(List<Usuario> usuarios) {
+        System.out.println("--- Lista de Visitantes ---");
+        boolean achou = false;
+        for (Usuario u : usuarios) {
+            if (u instanceof Visitante) {
+                System.out.println("ID: " + u.getId() + " | Nome: " + u.getNome() + " | Login: " + u.getLogin());
+                achou = true;
+            }
+        }
+        if (!achou) System.out.println("Nenhum visitante cadastrado.");
+    }
+
+    public void excluirVisitante(List<Usuario> usuarios, int idVisitante) {
+        Usuario alvo = null;
+        for (Usuario u : usuarios) {
+            if (u.getId() == idVisitante && u instanceof Visitante) {
+                alvo = u;
+                break;
+            }
+        }
+        
+        if (alvo != null) {
+            usuarios.remove(alvo);
+            System.out.println("Sucesso: Visitante '" + alvo.getNome() + "' excluído.");
+        } else {
+            System.out.println("Erro: Visitante não encontrado.");
+        }
+    }
+
+    public String getCargo() { return cargo; }
 
 }

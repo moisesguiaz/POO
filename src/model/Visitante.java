@@ -1,38 +1,64 @@
 package model;
 
+import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.List;
 
-public class Visitante {
-    private int id;
-    private String nome;
-    private String login;
-    private String senha;
+public class Visitante extends Usuario implements Serializable {
+    private String email;
+    private String endereco;
+    private String genero;
+    private String telefone;
+    private List<Exposicao> inscricoes;
 
-    public Visitante(int id, String nome, String login, String senha) {
-        this.id = id;
-        this.nome = nome;
-        this.login = login;
-        this.senha = senha;
+    public Visitante(int id, String nome, String login, String senha, String cpf, 
+                     String email, String endereco, String genero, String telefone) {
+        super(id, nome, login, senha, cpf);
+        this.email = email;
+        this.endereco = endereco;
+        this.genero = genero;
+        this.telefone = telefone;
+        this.inscricoes = new ArrayList<>();
     }
 
-    public int getId() { return id; }
-    public String getNome() { return nome; }
-    public String getLogin() { return login; }
-    public String getSenha() { return senha; }
+    public boolean ingressarEmExposicao(Exposicao novaExposicao) {
+        if (inscricoes.contains(novaExposicao)) {
+            System.out.println("Erro: Você já está inscrito nesta exposição.");
+            return false;
+        }
+        for (Exposicao exp : inscricoes) {
+            if (novaExposicao.getDataInicio().isBefore(exp.getDataFim()) && 
+                novaExposicao.getDataFim().isAfter(exp.getDataInicio())) {
+                System.out.println("Erro: Conflito de horário com '" + exp.getTitulo() + "'.");
+                return false;
+            }
+        }
+        if (novaExposicao.adicionarVisitante(this)) {
+            this.inscricoes.add(novaExposicao);
+            System.out.println("Inscrição realizada com sucesso!");
+            return true;
+        }
+        return false;
+    }
 
-    // Método para visualizar obras
-    public void verObras(List<Obra> obras) {
-        System.out.println("\n--- Lista de Obras ---");
-        for (Obra obra : obras) {
-            System.out.println(obra);
+    public void cancelarIngresso(Exposicao exposicao) {
+        if (inscricoes.remove(exposicao)) {
+            exposicao.removerVisitante(this);
+            System.out.println("Inscrição cancelada.");
+        } else {
+            System.out.println("Você não estava inscrito.");
         }
     }
 
-    // Método para visualizar exposições
-    public void verExposicoes(List<Exposicao> exposicoes) {
-        System.out.println("\n--- Lista de Exposições ---");
-        for (Exposicao exposicao : exposicoes) {
-            System.out.println(exposicao);
-        }
+    public void listarInscricoes() {
+        System.out.println("--- Minhas Inscrições ---");
+        if (inscricoes.isEmpty()) System.out.println("Nenhuma.");
+        else for (Exposicao exp : inscricoes) System.out.println("- " + exp.getTitulo());
     }
+
+    // Getters
+    public String getEmail() { return email; }
+    public String getEndereco() { return endereco; }
+    public String getGenero() { return genero; }
+    public String getTelefone() { return telefone; }
 }
