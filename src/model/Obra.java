@@ -84,12 +84,7 @@ public class Obra implements Serializable {
 
     @Override
     public String toString() {
-<<<<<<< HEAD
         return String.format("ID: %d | %s - %s (%d) | Status: %s | Local: %s", 
                 id, titulo, artista, ano, status, localizacaoAtual);
-=======
-        return String.format("ID: %02d, Título: %s, Autor: %s, Ano: %d, Em Exposição: %b, Em Restauração: %b",
-        id, titulo, autor, ano, emExposicao, emRestauracao);
->>>>>>> 7efe39e88c5a8aff52aa469e3ffce85bf0a719dd
     }
 }
