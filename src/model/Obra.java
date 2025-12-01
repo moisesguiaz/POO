@@ -26,6 +26,6 @@ public class Obra {
     @Override
     public String toString() {
         return String.format("ID: %02d, Título: %s, Autor: %s, Ano: %d, Em Exposição: %b, Em Restauração: %b",
-                             id, titulo, autor, ano, emExposicao, emRestauracao);
+        id, titulo, autor, ano, emExposicao, emRestauracao);
     }
 }
